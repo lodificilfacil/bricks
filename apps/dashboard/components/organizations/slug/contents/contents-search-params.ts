@@ -14,7 +14,7 @@ import { SortDirection } from '~/types/sort-direction';
 
 export const searchParams = {
   pageIndex: parseAsInteger.withDefault(0),
-  pageSize: parseAsInteger.withDefault(8),
+  pageSize: parseAsInteger.withDefault(9),
   type: parseAsStringLiteral([...contentTypeFilterValues]).withDefault('all'),
   sortBy: parseAsStringLiteral([...getContentsSortByValues]).withDefault(
     'updatedAt'
