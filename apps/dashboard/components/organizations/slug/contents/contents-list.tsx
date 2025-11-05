@@ -8,10 +8,14 @@ import { ContentCard } from './content-card';
 interface ContentsListProps {
   contents: ContentCardDto[];
   totalCount?: number;
+  currentUserId?: string;
+  isOrgAdmin?: boolean;
 }
 
 export function ContentsList({
-  contents
+  contents,
+  currentUserId,
+  isOrgAdmin
 }: ContentsListProps): React.JSX.Element {
   return (
     <ScrollArea className="h-full p-6">
@@ -20,6 +24,8 @@ export function ContentsList({
           <ContentCard
             key={content.id}
             content={content}
+            currentUserId={currentUserId}
+            isOrgAdmin={isOrgAdmin}
           />
         ))}
       </div>

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { type Metadata } from 'next';
 
+import { getAuthOrganizationContext } from '@workspace/auth/context';
+import { isOrganizationAdmin } from '@workspace/auth/permissions';
 import {
   Page,
   PageBody,
@@ -31,6 +33,13 @@ export default async function ContentsPage({
 
   const hasAnyContents = totalCount > 0;
 
+  const ctx = await getAuthOrganizationContext();
+  const isOrgAdmin = await isOrganizationAdmin(
+    ctx.session.user.id,
+    ctx.organization.id
+  );
+  const currentUserId = ctx.session.user.id;
+
   return (
     <TransitionProvider>
       <Page>
@@ -50,7 +59,11 @@ export default async function ContentsPage({
         <PageBody>
           {hasAnyContents ? (
             <React.Suspense>
-              <ContentsList contents={contents} />
+              <ContentsList
+                contents={contents}
+                currentUserId={currentUserId}
+                isOrgAdmin={isOrgAdmin}
+              />
             </React.Suspense>
           ) : (
             <ContentsEmptyState />
