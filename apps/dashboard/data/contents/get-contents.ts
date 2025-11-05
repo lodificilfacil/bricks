@@ -1,10 +1,10 @@
 import 'server-only';
 
 import { unstable_cache as cache } from 'next/cache';
+import { Prisma } from '@prisma/client'; // ← usa Prisma oficial
 
 import { getAuthOrganizationContext } from '@workspace/auth/context';
 import { ValidationError } from '@workspace/common/errors';
-import { Prisma } from '@workspace/database';
 import { prisma } from '@workspace/database/client';
 
 import {
@@ -17,7 +17,17 @@ import {
   type GetContentsSchema
 } from '~/schemas/contents/get-contents-schema';
 
-export async function getContents(input: GetContentsSchema) {
+export async function getContents(input: GetContentsSchema): Promise<{
+  contents: {
+    id: string;
+    title: string;
+    type: 'course' | 'microlearning';
+    updatedAt: string;
+    owner: { id: string; name: string; image: string | null };
+  }[];
+  filteredCount: number;
+  totalCount: number;
+}> {
   const ctx = await getAuthOrganizationContext();
 
   const result = getContentsSchema.safeParse(input);
@@ -40,7 +50,7 @@ export async function getContents(input: GetContentsSchema) {
         type: parsedInput.type !== 'all' ? parsedInput.type : undefined
       };
 
-      const [items, totalCount] = await prisma.$transaction([
+      const [items, filteredCount, totalCount] = await prisma.$transaction([
         prisma.content.findMany({
           skip: parsedInput.pageIndex * parsedInput.pageSize,
           take: parsedInput.pageSize,
@@ -62,8 +72,9 @@ export async function getContents(input: GetContentsSchema) {
             }
           }
         }),
+        prisma.content.count({ where: whereClause }),
         prisma.content.count({
-          where: whereClause
+          where: { organizationId: ctx.organization.id }
         })
       ]);
 
@@ -72,7 +83,7 @@ export async function getContents(input: GetContentsSchema) {
         updatedAt: item.updatedAt.toISOString()
       }));
 
-      return { contents: mapped, totalCount };
+      return { contents: mapped, filteredCount, totalCount };
     },
     Caching.createOrganizationKeyParts(
       OrganizationCacheKey.Contents,

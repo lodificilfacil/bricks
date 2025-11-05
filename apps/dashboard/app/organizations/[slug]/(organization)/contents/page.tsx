@@ -29,7 +29,8 @@ export default async function ContentsPage({
 }: NextPageProps): Promise<React.JSX.Element> {
   const parsedSearchParams = await searchParamsCache.parse(searchParams);
 
-  const { contents, totalCount } = await getContents(parsedSearchParams);
+  const { contents, filteredCount, totalCount } =
+    await getContents(parsedSearchParams);
 
   const hasAnyContents = totalCount > 0;
 
@@ -61,6 +62,7 @@ export default async function ContentsPage({
             <React.Suspense>
               <ContentsList
                 contents={contents}
+                totalCount={filteredCount}
                 currentUserId={currentUserId}
                 isOrgAdmin={isOrgAdmin}
               />
