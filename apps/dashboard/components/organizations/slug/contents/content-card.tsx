@@ -116,7 +116,7 @@ export function ContentCard({
             ) : (
               <LayersIcon className="size-4 text-muted-foreground" />
             )}
-            <span className="truncate">{content.title || 'Untitled'}</span>
+            <span className="truncate">{content.title}</span>
           </CardTitle>
           <Badge
             variant="outline"

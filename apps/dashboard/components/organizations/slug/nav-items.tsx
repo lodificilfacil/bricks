@@ -3,6 +3,7 @@ import {
   CodeIcon,
   CreditCardIcon,
   HomeIcon,
+  LayoutGrid,
   LockKeyholeIcon,
   SettingsIcon,
   StoreIcon,
@@ -30,9 +31,9 @@ export function createMainNavItems(slug: string): NavItem[] {
       icon: HomeIcon
     },
     {
-      title: 'Contents',
+      title: 'All contents',
       href: replaceOrgSlug(routes.dashboard.organizations.slug.Contents, slug),
-      icon: HomeIcon
+      icon: LayoutGrid
     },
     {
       title: 'Contacts',
