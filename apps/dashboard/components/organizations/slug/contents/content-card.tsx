@@ -3,6 +3,7 @@
 import * as React from 'react';
 import {
   CalendarIcon,
+  CopyIcon,
   LayersIcon,
   LayoutIcon,
   MoreHorizontalIcon,
@@ -30,6 +31,7 @@ import {
 import { toast } from '@workspace/ui/components/sonner';
 
 import { deleteContent } from '~/actions/contents/delete-content';
+import { duplicateContent } from '~/actions/contents/duplicate-content';
 import { ContentCardDto } from '~/types/dtos/content-dto';
 
 interface ContentsListProps {
@@ -100,8 +102,43 @@ export function ContentCard({
             toast.error(payload?.message ?? 'Could not delete content.');
             break;
         }
-      } catch (e) {
+      } catch {
         toast.error('Could not delete content.');
+      }
+    });
+  };
+
+  const handleDuplicate = (): void => {
+    startTransition(async () => {
+      try {
+        const res = await duplicateContent({ contentId: content.id });
+        if (!res) {
+          toast.error('Unexpected response.');
+          return;
+        }
+        if (res.serverError) {
+          toast.error(res.serverError || 'Could not duplicate content.');
+          return;
+        }
+        if (res.validationErrors) {
+          toast.error('Invalid request.');
+          return;
+        }
+        const payload = res.data;
+        if (payload?.ok) {
+          toast.success('Content duplicated');
+          return;
+        }
+        switch (payload?.reason) {
+          case 'not_found':
+            toast.error(payload.message ?? 'Original content not found.');
+            break;
+          default:
+            toast.error(payload?.message ?? 'Could not duplicate content.');
+            break;
+        }
+      } catch {
+        toast.error('Could not duplicate content.');
       }
     });
   };
@@ -138,10 +175,20 @@ export function ContentCard({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onSelect={() => {
+                handleDuplicate();
+              }}
+              disabled={pending}
+              className="cursor-pointer"
+            >
+              <CopyIcon className="mr-2 size-4" />
+              Duplicate
+            </DropdownMenuItem>
+
             {canDelete && (
               <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
+                onSelect={() => {
                   handleDelete();
                 }}
                 disabled={pending}
