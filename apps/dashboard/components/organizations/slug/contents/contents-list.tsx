@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { CalendarIcon, LayersIcon, LayoutIcon } from 'lucide-react';
 
-import { replaceOrgSlug, routes } from '@workspace/routes';
 import {
   Avatar,
   AvatarFallback,
@@ -14,8 +13,6 @@ import {
   CardTitle
 } from '@workspace/ui/components/card';
 import { ScrollArea } from '@workspace/ui/components/scroll-area';
-
-import { useActiveOrganization } from '~/hooks/use-active-organization';
 
 export type ContentCardDto = {
   id: string;
