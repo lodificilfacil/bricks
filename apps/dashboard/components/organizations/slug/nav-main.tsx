@@ -16,12 +16,17 @@ import { cn } from '@workspace/ui/lib/utils';
 
 import { createMainNavItems } from '~/components/organizations/slug/nav-items';
 import { useActiveOrganization } from '~/hooks/use-active-organization';
+import { AddContentButton } from './contents/add-content-button';
 
 export function NavMain(props: SidebarGroupProps): React.JSX.Element {
   const pathname = usePathname();
   const activeOrganization = useActiveOrganization();
   return (
     <SidebarGroup {...props}>
+      <AddContentButton
+        organizationId={activeOrganization.id}
+        folderId={null}
+      />
       <SidebarMenu>
         {createMainNavItems(activeOrganization.slug).map((item, index) => {
           const isActive = pathname.startsWith(
