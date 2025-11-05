@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidateTag } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 
 import { isOrganizationAdmin } from '@workspace/auth/permissions';
@@ -13,45 +13,67 @@ const inputSchema = z.object({
   contentId: z.string().uuid()
 });
 
+export type DeleteContentResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: 'not_found' | 'forbidden' | 'unknown';
+      message?: string;
+    };
+
 export const deleteContent = authOrganizationActionClient
   .metadata({ actionName: 'deleteContent' })
   .inputSchema(inputSchema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action<DeleteContentResult>(async ({ parsedInput, ctx }) => {
     const { contentId } = parsedInput;
 
-    // 1) Ensure content belongs to this org and get owner
-    const content = await prisma.content.findFirst({
-      where: {
-        id: contentId,
-        organizationId: ctx.organization.id
-      },
-      select: { id: true, ownerId: true }
-    });
+    try {
+      // 1) Asegura que el content pertenece a la organización
+      const content = await prisma.content.findFirst({
+        where: { id: contentId, organizationId: ctx.organization.id },
+        select: { id: true, ownerId: true }
+      });
 
-    // If not found (different org or already deleted), exit silently
-    if (!content) return;
+      if (!content) {
+        return {
+          ok: false,
+          reason: 'not_found',
+          message: 'Content not found (maybe already deleted).'
+        };
+      }
 
-    // 2) Authorization: owner OR org admin
-    const currentUserId = ctx.session.user.id;
-    const isOrgAdmin = await isOrganizationAdmin(
-      currentUserId,
-      ctx.organization.id
-    );
-    const isOwner = content.ownerId === currentUserId;
-
-    if (!isOwner && !isOrgAdmin) {
-      // Not authorized — exit silently
-      return;
-    }
-
-    // 3) Delete content
-    await prisma.content.delete({ where: { id: content.id } });
-
-    // 4) Revalidate caches / route
-    revalidateTag(
-      Caching.createOrganizationTag(
-        OrganizationCacheKey.Contents,
+      // 2) Autorización: owner O admin de la organización
+      const currentUserId = ctx.session.user.id;
+      const isOrgAdmin = await isOrganizationAdmin(
+        currentUserId,
         ctx.organization.id
-      )
-    );
+      );
+      const isOwner = content.ownerId === currentUserId;
+
+      if (!isOwner && !isOrgAdmin) {
+        return {
+          ok: false,
+          reason: 'forbidden',
+          message: 'You are not allowed to delete this content.'
+        };
+      }
+
+      // 3) Delete
+      await prisma.content.delete({ where: { id: content.id } });
+
+      // 4) Revalidate cache & ruta
+      revalidateTag(
+        Caching.createOrganizationTag(
+          OrganizationCacheKey.Contents,
+          ctx.organization.id
+        )
+      );
+      if (ctx.organization.slug) {
+        revalidatePath(`/organizations/${ctx.organization.slug}/contents`);
+      }
+
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, reason: 'unknown', message: 'Unexpected error.' };
+    }
   });
