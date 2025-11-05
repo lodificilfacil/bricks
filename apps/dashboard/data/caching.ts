@@ -27,7 +27,8 @@ export enum OrganizationCacheKey {
   Members,
   Invitations,
   ApiKeys,
-  Webhooks
+  Webhooks,
+  Contents
 }
 
 export class Caching {
