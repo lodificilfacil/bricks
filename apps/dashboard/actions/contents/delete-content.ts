@@ -1,12 +1,9 @@
-// apps/dashboard/actions/contents/delete-content.ts
 'use server';
 
 import { revalidateTag } from 'next/cache';
 import { z } from 'zod';
 
-// ⬇️ Ajusta esta ruta si tu helper vive en otro sitio
 import { isOrganizationAdmin } from '@workspace/auth/permissions';
-import { ActionType, ActorType, Prisma } from '@workspace/database';
 import { prisma } from '@workspace/database/client';
 
 import { authOrganizationActionClient } from '~/actions/safe-action';
@@ -22,7 +19,7 @@ export const deleteContent = authOrganizationActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { contentId } = parsedInput;
 
-    // 1) Encontrar el contenido dentro de esta organización
+    // 1) Ensure content belongs to this org and get owner
     const content = await prisma.content.findFirst({
       where: {
         id: contentId,
@@ -31,12 +28,10 @@ export const deleteContent = authOrganizationActionClient
       select: { id: true, ownerId: true }
     });
 
-    if (!content) {
-      // No existe o pertenece a otra organización
-      return;
-    }
+    // If not found (different org or already deleted), exit silently
+    if (!content) return;
 
-    // 2) Comprobar permisos en servidor (RBAC real)
+    // 2) Authorization: owner OR org admin
     const currentUserId = ctx.session.user.id;
     const isOrgAdmin = await isOrganizationAdmin(
       currentUserId,
@@ -45,27 +40,14 @@ export const deleteContent = authOrganizationActionClient
     const isOwner = content.ownerId === currentUserId;
 
     if (!isOwner && !isOrgAdmin) {
-      // Sin permisos para borrar
+      // Not authorized — exit silently
       return;
     }
 
-    // 3) Borrado + registro de actividad en transacción
-    await prisma.$transaction(async (tx) => {
-      await tx.content.delete({ where: { id: content.id } });
+    // 3) Delete content
+    await prisma.content.delete({ where: { id: content.id } });
 
-      await tx.contentActivity.create({
-        data: {
-          contentId: content.id,
-          actionType: ActionType.DELETE,
-          actorId: currentUserId,
-          actorType: ActorType.MEMBER,
-          metadata: Prisma.DbNull, // ✅ no uses null directo
-          occurredAt: new Date()
-        }
-      });
-    });
-
-    // 4) Revalidar cache del listado de contenidos
+    // 4) Revalidate caches / route
     revalidateTag(
       Caching.createOrganizationTag(
         OrganizationCacheKey.Contents,
