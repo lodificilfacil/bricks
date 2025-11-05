@@ -379,6 +379,7 @@ model Organization {
   orders            Order[]
   subscriptions     Subscription[]
   webhooks          Webhook[]
+  contents          Content[]
 
   @@index([billingCustomerId], map: "IX_Organization_billingCustomerId")
 }
@@ -480,6 +481,7 @@ model User {
   notifications                Notification[]
   pageVisits                   ContactPageVisit[]
   sessions                     Session[]
+  contents Content[]
 }
 
 model UserImage {
@@ -531,4 +533,42 @@ model WorkTimeSlot {
   workHours   WorkHours @relation(fields: [workHoursId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([workHoursId], map: "IX_WorkTimeSlot_workHoursId")
+}
+
+model ContentActivity {
+  id         String     @id(map: "PK_ContentActivity") @default(uuid()) @db.Uuid
+  contentId  String     @db.Uuid
+  actionType ActionType
+  actorId    String     @db.VarChar(255)
+  actorType  ActorType
+  metadata   Json?
+  occurredAt DateTime   @default(now())
+  content    Content    @relation(fields: [contentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([contentId], map: "IX_ContentActivity_contentId")
+  @@index([occurredAt], map: "IX_ContentActivity_occurredAt")
+}
+
+
+enum ContentType {
+  course
+  microlearning
+}
+
+model Content {
+  id              String        @id(map: "PK_Content") @default(uuid()) @db.Uuid
+  title           String        @db.VarChar(255)
+  type            ContentType
+  ownerId         String        @db.Uuid
+  organizationId  String        @db.Uuid
+  folderId        String?       @db.Uuid
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  owner           User          @relation(fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  activities      ContentActivity[]
+
+  @@index([organizationId], map: "IX_Content_organizationId")
+  @@index([ownerId], map: "IX_Content_ownerId")
 }
