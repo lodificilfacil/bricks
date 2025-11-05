@@ -47,7 +47,7 @@ export default async function ContentsPage({
             </React.Suspense>
           </PageSecondaryBar>
         </PageHeader>
-        <PageBody disableScroll={hasAnyContents}>
+        <PageBody>
           {hasAnyContents ? (
             <React.Suspense>
               <ContentsList contents={contents} />
