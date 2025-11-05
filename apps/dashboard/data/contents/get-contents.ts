@@ -1,10 +1,10 @@
 import 'server-only';
 
 import { unstable_cache as cache } from 'next/cache';
-import { Prisma } from '@prisma/client';
 
 import { getAuthOrganizationContext } from '@workspace/auth/context';
 import { ValidationError } from '@workspace/common/errors';
+import { Prisma } from '@workspace/database';
 import { prisma } from '@workspace/database/client';
 
 import {
