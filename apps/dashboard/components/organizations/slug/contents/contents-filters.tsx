@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { LayersIcon, ListIcon } from 'lucide-react';
+import { LayersIcon, LayoutIcon, ListIcon } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 
 import { InputSearch } from '@workspace/ui/components/input-search';
@@ -102,7 +102,7 @@ const typeOptions: Array<{
   {
     label: 'Courses',
     value: 'course',
-    icon: <LayersIcon className="size-4 shrink-0" />
+    icon: <LayoutIcon className="size-4 shrink-0" />
   },
   {
     label: 'Microlearning',

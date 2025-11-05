@@ -38,9 +38,9 @@ export function ContentCard({ content }: ContentsListProps): React.JSX.Element {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           {content.type === 'course' ? (
-            <LayersIcon className="size-4 text-muted-foreground" />
-          ) : (
             <LayoutIcon className="size-4 text-muted-foreground" />
+          ) : (
+            <LayersIcon className="size-4 text-muted-foreground" />
           )}
           {content.title || 'Untitled'}
         </CardTitle>
