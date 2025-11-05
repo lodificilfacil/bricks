@@ -61,6 +61,7 @@ export const routes = {
         ChoosePlan: `${baseUrl.Dashboard}/organizations/[slug]/choose-plan`,
         Contacts: `${baseUrl.Dashboard}/organizations/[slug]/contacts`,
         Home: `${baseUrl.Dashboard}/organizations/[slug]/home`,
+        Contents: `${baseUrl.Dashboard}/organizations/[slug]/contents`,
         Index: `${baseUrl.Dashboard}/organizations/[slug]`,
         settings: {
           account: {

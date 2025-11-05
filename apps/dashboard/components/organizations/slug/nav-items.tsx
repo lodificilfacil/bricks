@@ -30,6 +30,11 @@ export function createMainNavItems(slug: string): NavItem[] {
       icon: HomeIcon
     },
     {
+      title: 'Contents',
+      href: replaceOrgSlug(routes.dashboard.organizations.slug.Contents, slug),
+      icon: HomeIcon
+    },
+    {
       title: 'Contacts',
       href: replaceOrgSlug(routes.dashboard.organizations.slug.Contacts, slug),
       icon: UsersIcon
